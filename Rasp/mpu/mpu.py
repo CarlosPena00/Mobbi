@@ -14,6 +14,8 @@ class MPU:
     def __init__(self):
         self.bus = smbus.SMBus(1)
         self.address = 0x68  # i2cdetect -y 1
+        self.bus.write_byte_data(self.address, 0x6b, 0)  # "Wake sensor"
+        # https://playground.arduino.cc/Main/MPU-6050
 
     def __getXYZ(self, adr):
         xyz = []
@@ -46,7 +48,7 @@ class MPU:
 mpu = MPU()
 
 while True:
-    print mpu.getAccel()
-    print mpu.getTemp()
+    print "Acell: ", mpu.getAccel()
+    print "Temp: ", mpu.getTemp()
     time.sleep(0.5)
 
