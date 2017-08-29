@@ -7,13 +7,16 @@ class WeightSensor:
     this module is based on the HX711 datasheet
     """
 
-    def __init__(self, SCK, DT):
+    def __init__(self, SCK, DT, LED):
         self.SCK = SCK
         self.DT = DT
+        self.LED = LED
         self.tare = 0
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.SCK, GPIO.OUT)  # SCK command
         GPIO.setup(self.DT, GPIO.IN)  # Device Output
+        GPIO.setup(self.LED, GPIO.OUT)  # LED output
+        GPIO.output(self.LED, False)
         #self.setTare(5)
 
     def __calculateWeight(self):
@@ -38,11 +41,17 @@ class WeightSensor:
                 count = weight
         self.tare = count
 
-    def getWeight(self, n=1):
+    def getWeight(self, n=0):
         #Just read some time, not usefull at all
+
         for i in range(n):
             self.__calculateWeight()
-        return self.__calculateWeight() - self.tare
+        weight = self.__calculateWeight()
+        if weight <= 0 or weight == 8388607:
+            GPIO.output(self.LED, True)
+            time.sleep(1)
+            GPIO.output(self.LED, False)
+        return weight - self.tare
 
 
 def autoTare(WS):
@@ -70,15 +79,16 @@ def autoTare(WS):
 if __name__ == "__main__":
     SCK_PIN = 27
     DT_PIN = 17
-    WS = WeightSensor(SCK_PIN, DT_PIN)
+    LED_PIN = 22
+    WS = WeightSensor(SCK_PIN, DT_PIN, LED_PIN)
     #WS.getWeight(100)
     inter = 0
     negCount = 0
     lastWeight = 0
     try:
-        autoTare(WS)
+        while True:
+            print (WS.getWeight(0))
+
     except KeyboardInterrupt:
         GPIO.cleanup()
         print ("lean GPIO")  # Clean the GPIO
-
-
