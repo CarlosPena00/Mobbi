@@ -11,9 +11,7 @@ class MPU:
     /lesson-32-mpu6050-gyro-acceleration-sensor-sensor-kit-v2-0-for-b-plus.html
     """
     ACCEL_SCALE_MODIFIER_2G = 16384.0
-    ACCEL_SCALE_MODIFIER_4G = 8192.0
-    ACCEL_SCALE_MODIFIER_8G = 4096.0
-    ACCEL_SCALE_MODIFIER_16G = 2048.0
+
     GRAVITIY_MS2 = 9.80665
 
     def __init__(self):
