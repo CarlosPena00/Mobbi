@@ -48,14 +48,16 @@ void loop()
   byte letra;
   for (byte i = 0; i < mfrc522.uid.size; i++) 
   {
-     Serial.print(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " ");
-     Serial.print(mfrc522.uid.uidByte[i], HEX);
+//     Serial.print(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " ");
+//     Serial.print(mfrc522.uid.uidByte[i], HEX);
      conteudo.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " "));
      conteudo.concat(String(mfrc522.uid.uidByte[i], HEX));
   }
   Serial.println();
-  Serial.print("Mensagem : ");
+//  Serial.print("Mensagem : ");
   conteudo.toUpperCase();
+
+  Serial.println(conteudo.substring(1));
   
   // Testa se o cartao1 foi lido
   if (conteudo.substring(1) == "30 4D E7 87")

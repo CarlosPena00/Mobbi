@@ -1,5 +1,6 @@
 
 #include <MFRC522.h> 
+#include <SPI.h>
 
 #define SS_PIN 10
 #define RST_PIN 9
@@ -38,6 +39,11 @@ void getSoundSensor(){
  	Serial.print(" ");
  	Serial.println(valor_D);
  	control_sound_sensor++;
+
+  digitalWrite(led_sound_sensor, HIGH);
+  delay(10);
+  digitalWrite(led_sound_sensor, LOW);
+  delay(10);
 }
 
 void getRFID(){
@@ -79,9 +85,10 @@ void setup(){
 	// Inicia a serial
   	Serial.begin(9600);
   	//Led rifd sensor
-	pinMode(led_rfid, OUTPUT);
+     SPI.begin();
+	  pinMode(led_rfid, OUTPUT);
 	//Led sound sensor
-	pinMode(led_sound_sensor, OUTPUT);
+//	pinMode(led_sound_sensor, OUTPUT);
   	//inicia RFID
   	mfrc522.PCD_Init();
   	//Define pinos sensor como entrada
