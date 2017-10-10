@@ -54,12 +54,10 @@ void getTempSensor(){
   } 
   else 
   {
-    Serial.print("Umidade: ");
+    Serial.print("Um_and_Temp ");
     Serial.print(h);
-    Serial.print(" %t");
-    Serial.print("Temperatura: ");
-    Serial.print(t);
-    Serial.println(" *C");
+    Serial.print(" ");
+    Serial.println(t);
   }
   control_dht11++;
 }
@@ -111,7 +109,7 @@ void getRFID(){
 
   	conteudo.toUpperCase();
   	//Enviar conteudo.substring(1) via serial
-  	Serial.println(conteudo.substring(1));
+  	Serial.println("RFID "+conteudo.substring(1));
   	
   	digitalWrite(led_rfid, HIGH);
   	delay(200);
