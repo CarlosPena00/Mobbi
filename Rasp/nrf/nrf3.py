@@ -2,6 +2,7 @@ import RPi.GPIO as GPIO
 from lib_nrf24 import NRF24
 import time
 import spidev
+import numpy as np
 
 
 class RadioNRF:
@@ -39,6 +40,18 @@ class RadioNRF:
             if(self.radio.available(0)):
                 self.radio.read(receivedMessage, 4)
                 print "Rec: ", receivedMessage
+
+    def createPackage(self, ID, quant, temp, sound, vel):
+        package = ''
+        package = package + hex(ID).replace("0x", "")
+        package += hex(quant).replace("0x", "")
+        package += hex(temp).replace("0x", "")
+        package += hex(sound).replace("0x", "")
+        package += hex(vel).replace("0x", "")
+        self.radio.stopListening()
+        self.radio.write(package)
+        print package
+        return package
 
     def SendTo(self, verifyByte, msg):
         for i in range(0, self.trys):  # Numero Maximo de tentativas de envio
@@ -117,10 +130,13 @@ class RadioNRF:
 
 if __name__ == "__main__":
     radio = RadioNRF()
-    try:
-        while(radio.SendTo("B", "CRISMEAJUDA1")):
-            pass
-        #radio.ForceSendID("3")
-    except KeyboardInterrupt:
-        radio.exit()
-    radio.exit()
+    radio.createPackage(124, 20, 25, 2, 8)
+
+#
+#    try:
+#        while(radio.SendTo("B", "CRISMEAJUDA1")):
+#            pass
+#        #radio.ForceSendID("3")
+#    except KeyboardInterrupt:
+#        radio.exit()
+#    radio.exit()
