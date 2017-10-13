@@ -12,22 +12,22 @@ class Laser:
     def __init__(self, gain):
         self.gain = gain
         print('Reading ADS1x15 values, press Ctrl-C to quit...')
-        print('| {0:>6} | {1:>6} | {2:>6} | {3:>6} |'.format(*range(4)))
+        print('| {0:>6} | {1:>6} |'.format(*range(2)))
         print('-' * 37)
 
-    def getAdc(self):
-        while True:
-            value = [0] * 4
-            for i in range(4):
-                value[i] = self.adc.read_adc(i, gain=self.gain)
-            b = '| {0:>6} | {1:>6} | {2:>6} | {3:>6} |'.format(*value)
-            sys.stdout.write('\r' + b)
-            sys.stdout.flush()
-            time.sleep(0.5)
-            #sys.stdout.write('\r' + str(sensor.get_temp()))
-            #sys.stdout.flush()
-
-            time.sleep(1)
+    def getLdr(self):
+        value = [0] * 2
+        for i in range(2):
+            value[i] = self.adc.read_adc(i, gain=self.gain)
+        b = '| {0:>6} | {1:>6} |'.format(*value)
+        sys.stdout.write('\r' + b)
+        sys.stdout.flush()
+        time.sleep(0.5)
+        #sys.stdout.write('\r' + str(sensor.get_temp()))
+        #sys.stdout.flush()
+        time.sleep(1)
+        return b
 
 a = Laser(1)
-a.getAdc()
+while 1:
+    a.getLdr()
