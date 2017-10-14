@@ -2,7 +2,6 @@ import RPi.GPIO as GPIO
 from lib_nrf24 import NRF24
 import time
 import spidev
-import numpy as np
 
 
 class RadioNRF:
@@ -41,26 +40,47 @@ class RadioNRF:
                 self.radio.read(receivedMessage, 4)
                 print "Rec: ", receivedMessage
 
+    def toHex(self, num):
+        var = hex(num).replace("0x", "")
+        if len(var) is 1:
+            var = '00' + var
+        if len(var) is 2:
+            var = '0' + var
+        if len(var) > 3:
+            print "Size bigger than 2 bytes, var set to zero"
+            var = '000'
+        print var
+        return var
+
     def createPackage(self, ID, quant, temp, sound, vel):
+        print "Int value:", ID, quant, temp, sound, vel
         package = ''
-        package = package + hex(ID).replace("0x", "")
-        package += hex(quant).replace("0x", "")
-        package += hex(temp).replace("0x", "")
-        package += hex(sound).replace("0x", "")
-        package += hex(vel).replace("0x", "")
+        package += self.toHex(ID)
+        package += self.toHex(quant)
+        package += self.toHex(temp)
+        package += self.toHex(sound)
+        package += self.toHex(vel)
         self.radio.stopListening()
-        self.radio.write(package)
-        print package
         return package
 
-    def SendTo(self, verifyByte, msg):
+    def sendInt(self, num):
+        package = []
+        package.append(num)
+        #package.append(num)
+        print "pack: ", package
+        alfa = self.radio.write(package)
+        print alfa
+
+    def sendTo(self, verifyByte, msg):
+        send = '*' + verifyByte + msg
+        print send, len(send)
+
         for i in range(0, self.trys):  # Numero Maximo de tentativas de envio
             reciveAck = []             # Rxbuffer para o Ack
             self.radio.stopListening()
-            send = '*' + verifyByte + msg
             # Byte de verificacao Fixo, e variavel
+            time.sleep(0.5)
             self.radio.write(send)
-            time.sleep(0.1)
             self.radio.startListening()
             for i in range(0, self.timeOut):
                 if self.radio.available(0):
@@ -70,58 +90,9 @@ class RadioNRF:
                         return True
                     else:
                         print "Error: ", verifyByte, reciveAck[0]
-                time.sleep(0.5)
+                time.sleep(0.2)
         print "Error: retorno sem sucesso"
         return False
-
-    def SendToKL43Z(self, ID, msg):
-        self.radio.stopListening()
-        for i in range(0, self.trys):
-            print "Seend the ID", ID
-            self.radio.write(ID)
-            time.sleep(0.5)
-            if self.getArk(ID) is True:
-                self.radio.stopListening()
-                self.radio.write(msg)
-                if self.getArk(ID):
-                    return True
-            time.sleep(1 / 2)
-        return False
-
-    def getArk(self, ID):
-        receivedMessage = []
-        for i in range(0, self.timeOut):
-            self.radio.startListening()
-            if(self.radio.available(0)):
-                self.radio.read(receivedMessage, 1)
-                self.radio.stopListening()
-                if(receivedMessage == ID):
-                    return True
-                print "ID Error !!!", receivedMessage
-            time.sleep(0.50)
-        print "Time OUT!"
-        return False
-
-    def ForceSendID(self, ID):
-        receivedMessage = []
-        while True:
-            print "Send: ", ID
-            self.radio.write(ID)
-            time.sleep(1)
-            self.radio.startListening()
-            if(self.radio.available(0)):
-                self.radio.read(receivedMessage, 1)
-                print "ID: ", ID, "Recive: ", receivedMessage
-            self.radio.stopListening()
-
-    def ForceLiten(self):
-        receivedMessage = []
-        self.radio.startListening()
-        while(True):
-            if(self.radio.available(0)):
-                self.radio.read(receivedMessage, 1)
-                print "Recive: ", receivedMessage
-            time.sleep(0.5)
 
     def exit(self):
         self.radio.end()
@@ -130,7 +101,9 @@ class RadioNRF:
 
 if __name__ == "__main__":
     radio = RadioNRF()
-    radio.createPackage(124, 20, 25, 2, 8)
+    msg = radio.createPackage(220, 111, 125, 112, 255)
+    radio.sendTo('B', msg)
+    radio.exit()
 
 #
 #    try:
