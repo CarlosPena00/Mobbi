@@ -39,6 +39,7 @@ class WeightSensor:
             weight = self.__calculateWeight()
             if count > weight:
                 count = weight
+            time.sleep(0.1)
         self.tare = count
 
     def getWeight(self, n=0):
@@ -47,11 +48,11 @@ class WeightSensor:
         for i in range(n):
             self.__calculateWeight()
         weight = self.__calculateWeight()
-        if weight <= 0 or weight == 8388607:
+        if weight <= 0 or weight == 8388607 or weight >= 1660000:
             GPIO.output(self.LED, True)
             time.sleep(1)
             GPIO.output(self.LED, False)
-        return weight - self.tare
+        return (weight - self.tare), (weight - self.tare) > 60000
 
 
 def autoTare(WS):
@@ -85,9 +86,12 @@ if __name__ == "__main__":
     inter = 0
     negCount = 0
     lastWeight = 0
+    WS.setTare(10)
     try:
         while True:
-            print (WS.getWeight(0))
+            actualWeight = WS.getWeight(1)
+            print (actualWeight)
+            time.sleep(0.1)
 
     except KeyboardInterrupt:
         GPIO.cleanup()
