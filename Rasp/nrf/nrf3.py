@@ -5,7 +5,6 @@ import spidev
 
 GPIO.setmode(GPIO.BCM)
 
-i = 0
 pipes = [[0xE8, 0xE8, 0xF0, 0xF0, 0xE1], [0xF0, 0xF0, 0xF0, 0xF0, 0xE1]]
 
 radio = NRF24(GPIO, spidev.SpiDev())
@@ -42,8 +41,7 @@ try:
         print("Our received message decodes to: {}".format(string))
 
         radio.stopListening()
-        i = (i + 1) % 500
-        msg = "Hello World!! - " + str(i)
+        msg = "Hello World!!"
         radio.write(msg)
 
 except KeyboardInterrupt:
