@@ -50,11 +50,11 @@ void getTempSensor(){
   float t = dht.readTemperature();
   if (isnan(t) || isnan(h)) 
   {
-    Serial.println("Failed to read from DHT");
+//    Serial.println("Failed to read from DHT");
   } 
   else 
   {
-    Serial.print("Um_and_Temp ");
+    Serial.print("UT ");
     Serial.print(h);
     Serial.print(" ");
     Serial.println(t);
