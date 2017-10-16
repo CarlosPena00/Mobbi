@@ -34,7 +34,8 @@ void ForceSendID()
   {
     radio.read(rxBuff, 14);
     for (int i = 0 ; i < 14 ; i ++)
-      Serial.print(char(rxBuff[i]));
+
+    Serial.print(rxBuff[i]);
     Serial.println(" ");
     if (rxBuff[0] == '*')
     {
