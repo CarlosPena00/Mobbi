@@ -15,15 +15,17 @@ class RadioNRF:
         self.radio.begin(0, 25)
         self.radio.setPayloadSize(32)
 
-        self.radio.setChannel(0x76)
+        self.radio.setChannel(0x74)
         self.radio.setDataRate(NRF24.BR_1MBPS)
-        self.radio.setPALevel(NRF24.PA_MIN)
+        self.radio.setPALevel(NRF24.PA_MAX)
         self.radio.setAutoAck(True)
         self.radio.enableDynamicPayloads()
         self.radio.enableAckPayload()
         self.radio.openReadingPipe(1, self.pipes[1])
         self.radio.openWritingPipe(self.pipes[0])
         self.radio.printDetails()
+        print ""
+        print ""
         self.radio.stopListening()
         self.timeOut = timeOut
         self.trys = trys
@@ -49,11 +51,16 @@ class RadioNRF:
         if len(var) > 3:
             print "Size bigger than 2 bytes, var set to zero"
             var = '000'
-        print var
+        print "Number:", num, "Hex", var
         return var
 
     def createPackage(self, ID, quant, temp, sound, vel):
-        print "Int value:", ID, quant, temp, sound, vel
+        print "Create Package with"
+        print "ID:", ID, "Number of People", quant
+        print "Temperature", temp, "Sound Warnings", sound,
+        print "Speed Warnings", vel
+        print ""
+
         package = ''
         package += self.toHex(ID)
         package += self.toHex(quant)
@@ -63,17 +70,11 @@ class RadioNRF:
         self.radio.stopListening()
         return package
 
-    def sendInt(self, num):
-        package = []
-        package.append(num)
-        #package.append(num)
-        print "pack: ", package
-        alfa = self.radio.write(package)
-        print alfa
-
     def sendTo(self, verifyByte, msg):
         send = '*' + verifyByte + msg
-        print send, len(send)
+        print ''
+        print send, "Msg size:", len(send)
+        print ''
 
         for i in range(0, self.trys):  # Numero Maximo de tentativas de envio
             reciveAck = []             # Rxbuffer para o Ack
@@ -97,11 +98,11 @@ class RadioNRF:
     def exit(self):
         self.radio.end()
         GPIO.cleanup()
-        print ("lean GPIO")  # Clean the GPIO
+        print ("Clean GPIO")  # Clean the GPIO
 
 if __name__ == "__main__":
     radio = RadioNRF()
-    msg = radio.createPackage(220, 111, 125, 112, 255)
+    msg = radio.createPackage(149, 41, 29, 4, 1)
     radio.sendTo('B', msg)
     radio.exit()
 

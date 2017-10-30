@@ -22,10 +22,10 @@ class Laser:
         b = '| {0:>6} | {1:>6} |'.format(*value)
         sys.stdout.write('\r' + b)
         sys.stdout.flush()
-        time.sleep(0.5)
+        time.sleep(0.05)
         #sys.stdout.write('\r' + str(sensor.get_temp()))
         #sys.stdout.flush()
-        time.sleep(1)
+        
         return b
 
 a = Laser(1)
