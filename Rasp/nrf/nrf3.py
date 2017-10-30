@@ -45,28 +45,28 @@ class RadioNRF:
     def toHex(self, num):
         var = hex(num).replace("0x", "")
         if len(var) is 1:
-            var = '00' + var
-        if len(var) is 2:
             var = '0' + var
-        if len(var) > 3:
-            print "Size bigger than 2 bytes, var set to zero"
-            var = '000'
+        if len(var) > 2:
+            print "Size bigger than 1 bytes, var set to zero"
+            var = '00'
         print "Number:", num, "Hex", var
         return var
 
-    def createPackage(self, ID, quant, temp, sound, vel):
+    def createPackage(self, ID, zone_two, zone_one, temp, sound, accel):
         print "Create Package with"
-        print "ID:", ID, "Number of People", quant
+        print "ID:", ID, "Number of People Z2", zone_two
+        print "Number of People Z1", zone_one
         print "Temperature", temp, "Sound Warnings", sound,
-        print "Speed Warnings", vel
+        print "Speed Warnings", accel
         print ""
 
         package = ''
         package += self.toHex(ID)
-        package += self.toHex(quant)
+        package += self.toHex(zone_two)
+        package += self.toHex(zone_one)
         package += self.toHex(temp)
         package += self.toHex(sound)
-        package += self.toHex(vel)
+        package += self.toHex(accel)
         self.radio.stopListening()
         return package
 
@@ -102,8 +102,8 @@ class RadioNRF:
 
 if __name__ == "__main__":
     radio = RadioNRF()
-    msg = radio.createPackage(149, 41, 29, 4, 1)
-    radio.sendTo('B', msg)
+    msg = radio.createPackage(149, 41, 2, 29, 4, 1)
+    radio.sendTo('Z', msg)
     radio.exit()
 
 #
