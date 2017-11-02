@@ -31,7 +31,6 @@ ERROR_CODE_LDR2_DC = 'e008'
 ERROR_CODE_WEIGHT_DC = 'e009'
 TIMEOUT_NRF = 1 / 100    # 10 mili seg
 TIMEOUT_ESCADA = 2    # 2 seg
-TIME_SERIAL = 5    # seg
 TIME_ESCADA = 0.5    # seg
 VALOR_LDR = 1400
 PESO = 8000
@@ -72,6 +71,15 @@ class Dados:
         else:
             return self.pckt
 
+    def printInfo(self):
+        print "*********************"
+        print 'Subiram:' + str(self.qtd_subiram)
+        print 'Desceram: ' + str(self.qtd_desceram)
+        print 'Pagaram: ' + str(self.qtd_passagensPagas)
+        print 'Passageiros: ' + str(self.qtd_passageirosAtual)
+        print 'Temperatura: ' + str(self.temperatura)
+        print 'Alerta Ruido: ' + str(self.intensidadeRuido)
+
     def errorReport(self, errorCode):
         if errorCode == ERROR_CODE_TIMEOUT_RF:
             self.file.write(self.data_e_hora() + " - Erro: Timeout do nRF\r")
@@ -98,7 +106,80 @@ class SerialComm:
     estado = 0
 
     def __init__(self):
-        self.ser = serial.Serial('/dev/ttyUSB0', 9600)
+        self.ard = serial.Serial('/dev/ttyUSB0', 9600)
+        self.lista_temp = []
+        self.lista_sound = []
+        self.lista_RFID = []
+        self.count_pass = 0
+        self.count_temp = 0
+        self.count_sound = 0
+        self.count_sound_warning = 0
+        self.media_temp = 0
+
+    def isfloat(self, value):
+        try:
+            float(value)
+            return True
+        except ValueError:
+            return False
+
+    def getMsg(self):
+        return self.count_pass, self.media_temp, self.count_sound_warning
+
+    def getInfo(self, dados):
+        st = self.ard.readline()
+        st = st.replace('\r\n', '')
+        if('RFID' in st):
+            st = st.replace('RFID', '')
+            self.lista_RFID.append(st)
+            # self.count_pass += 1
+        elif ('UT' in st):
+            st = st.replace('UT ', '')
+            st = st.split(' ')
+            if(st[0].isdigit()):
+                self.count_pass = int(st[0])
+            if(len(st) > 1):
+                if(self.isfloat(st[1])):
+                    self.lista_temp.append(float(st[1]))
+                    self.count_temp += 1
+        else:
+            st = st.split(' ')
+            if(len(st) >= 2):
+                if(len(st[1]) == 1):
+                    if(st[1] == '0'):
+                        pass    # colocar ERROR REPORT
+                    else:
+                        if(st[0].isdigit()):
+                            self.lista_sound.append(int(st[0]))
+                            self.count_sound += 1
+
+        # print  st
+        med_temp = 0
+        med_sound = 0
+
+        for elemnt in self.lista_temp:
+            med_temp += elemnt
+        for elemnt in self.lista_sound:
+            med_sound += elemnt
+        result_med_temp = 0
+        result_med_sound = 0
+        if(self.count_temp > 0):
+            result_med_temp = (med_temp) / self.count_temp
+        if(self.count_sound > 0):
+            result_med_sound = (med_sound) / self.count_sound
+        if(result_med_sound > 30):
+            self.count_sound_warning += 1
+
+        self.media_temp = result_med_temp
+
+        if(len(self.lista_temp) >= 1000):
+            self.lista_temp = []
+            self.count_temp = 0
+        if(len(self.lista_sound) >= 1000):
+            self.lista_sound = []
+            self.count_sound = 0
+        print str(self.count_pass) + "\t" + str(self.media_temp) + '\t' + str(self.count_sound_warning)
+        dados.qtd_passagensPagas, dados.temperatura, dados.intensidadeRuido = self.getMsg()
 
     def storeSerialMsg(self, dados, str_Serial):
         # Recebe uma string da forma "dado1,dado2,dado3"
@@ -109,8 +190,11 @@ class SerialComm:
             return False
         else:
             dados.qtd_passagensPagas = int(a)
+            print 'Passagens pagas: ' + str(a) + '\r'
             dados.temperatura = float(b)
+            print b
             dados.intensidadeRuido = int(c)
+            print c
             # DEBUG
             dados.file.write('Serial read: ' + str(int(a), float(b), int(c)) + '\r')
             # /DEBUG
@@ -118,20 +202,8 @@ class SerialComm:
 
     def executar(self, bus, dados):
         if self.estado == 0:
-            flag = self.storeSerialMsg(dados, self.ser.readline())
+            self.getInfo(dados)
             self.start_time = time.time()
-            self.estado = 1
-        elif self.estado == 1:
-            if time.time() - self.start_time > TIME_SERIAL:
-                flag = self.storeSerialMsg(dados, self.ser.readline())
-                self.start_time = time.time()
-                if flag is False:
-                    self.estado = 2
-        elif self.estado == 2:
-            flag = self.storeSerialMsg(dados, self.ser.readline())
-            self.start_time = time.time()
-            if flag is True:
-                self.estado = 1
 
 
 class LDR:
@@ -406,7 +478,7 @@ class Sensors:
             dados.file.write("Entrou Degrau    - estado 0\r")
             # /DEBUG
             teste = self.peso.getWeight()
-            print teste
+            # print teste
             if teste > PESO:    # COLOCAR A CONDICAO CERTA
                 self.start_time = time.time()
                 self.estado = 1
@@ -418,7 +490,7 @@ class Sensors:
             dados.file.write("Entrou Degrau    - estado 1\r")
             # /DEBUG
             teste = self.peso.getWeight()
-            print teste
+            # print teste
             if teste < PESO:
                 self.estado = 2
             elif time.time() - self.start_time > TIMEOUT_ESCADA:
