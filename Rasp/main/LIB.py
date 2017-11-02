@@ -362,9 +362,9 @@ class Sensors:
             # /DEBUG
             if self.ldr.getLDRValue(1) == 1:
                 self.estado = 2
-            elif self.peso.getWeight() > PESO:    # COLOCAR A CONDICAO CERTA
-                dados.errorReport(ERROR_CODE_LDR1)
-                self.estado = 0
+            # elif self.peso.getWeight() > PESO:    # COLOCAR A CONDICAO CERTA
+            #    dados.errorReport(ERROR_CODE_LDR1)
+            #    self.estado = 0
             elif time.time() - self.start_time > TIMEOUT_ESCADA:
                 dados.errorReport(ERROR_CODE_TIMEOUT_ESCADA)
                 self.estado = 0
@@ -380,10 +380,20 @@ class Sensors:
                 dados.file.write("Descida de passageiros\r")
                 print ("Descida de passageiros")
                 # /DEBUG
-                self.estado = 0
-                return 0
+                self.start_time = time.time()
+                self.estado = 3
+                return 2
             elif time.time() - self.start_time > TIMEOUT_ESCADA:
                 dados.errorReport(ERROR_CODE_WEIGHT)
+                self.estado = 0
+                return 0
+            return 2
+        # CASE 3
+        elif self.estado == 3:
+            # DEBUG
+            dados.file.write("Entrou barreira2 - estado 3\r")
+            # /DEBUG
+            if time.time() - self.start_time > TIME_ESCADA:
                 self.estado = 0
                 return 0
             return 2
