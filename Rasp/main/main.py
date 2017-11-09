@@ -5,7 +5,7 @@ bus = BUS("0791")    # ID do onibus
 dados = Dados()
 sensors = Sensors(dados)
 serial = SerialComm()
-rf = NRF(0, 25)
+# rf = NRF(0, 25)
 arq = open('time_Mobbipp.txt', 'w')
 arq.write(dados.data_e_hora() + '\r')
 
@@ -26,9 +26,9 @@ try:
         serial.executar(bus, dados)
         arq.write('serial:  ' + str(time.time() - tempo) + '\r')
 
-        tempo = time.time()
-        rf.executar(bus, dados)
-        arq.write('serial:  ' + str(time.time() - tempo) + '\r')
+        # tempo = time.time()
+        # rf.executar(bus, dados)
+        # arq.write('serial:  ' + str(time.time() - tempo) + '\r')
 
 # DEBUG
         # i += 1

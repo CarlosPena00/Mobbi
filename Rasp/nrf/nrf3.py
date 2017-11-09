@@ -9,13 +9,13 @@ class RadioNRF:
     GPIO.setmode(GPIO.BCM)
 
     def __init__(self, timeOut=5, trys=20):
-        self.pipes = [[0xE8, 0xE8, 0xF0, 0xF0, 0xE1],
-        [0xE8, 0xE8, 0xF0, 0xF0, 0xE2]]
+        self.pipes = [[0xA8, 0xE8, 0xF0, 0xF0, 0xE1],
+        [0xA8, 0xE8, 0xF0, 0xF0, 0xE2]]
         self.radio = NRF24(GPIO, spidev.SpiDev())
         self.radio.begin(0, 25)
         self.radio.setPayloadSize(32)
 
-        self.radio.setChannel(0x74)
+        self.radio.setChannel(98)
         self.radio.setDataRate(NRF24.BR_1MBPS)
         self.radio.setPALevel(NRF24.PA_MAX)
         self.radio.setAutoAck(True)
@@ -102,9 +102,12 @@ class RadioNRF:
 
 if __name__ == "__main__":
     radio = RadioNRF()
-    msg = radio.createPackage(149, 41, 2, 29, 4, 1)
-    radio.sendTo('Z', msg)
-    radio.exit()
+    try:
+        msg = radio.createPackage(149, 41, 2, 29, 4, 1)
+        radio.sendTo('Z', msg)
+        radio.exit()
+    except KeyboardInterrupt:
+        radio.exit()
 
 #
 #    try:

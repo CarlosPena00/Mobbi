@@ -33,7 +33,7 @@ TIMEOUT_NRF = 1 / 100    # 10 mili seg
 TIMEOUT_ESCADA = 2    # 2 seg
 TIME_ESCADA = 0.5    # seg
 VALOR_LDR = 1400
-PESO = 8000
+PESO = 10000
 QTD_ENVIOS_MAX = 10
 SCK_PIN = 27
 DT_PIN = 17
@@ -72,13 +72,15 @@ class Dados:
             return self.pckt
 
     def printInfo(self):
-        print "*********************"
-        print 'Subiram:' + str(self.qtd_subiram)
-        print 'Desceram: ' + str(self.qtd_desceram)
-        print 'Pagaram: ' + str(self.qtd_passagensPagas)
-        print 'Passageiros: ' + str(self.qtd_passageirosAtual)
-        print 'Temperatura: ' + str(self.temperatura)
-        print 'Alerta Ruido: ' + str(self.intensidadeRuido)
+        self.qtd_passageirosAtual = max(self.qtd_subiram, self.qtd_passagensPagas) - self.qtd_desceram
+        print "**************************"
+        print ' Subiram:' + str(self.qtd_subiram)
+        print ' Desceram: ' + str(self.qtd_desceram)
+        print ' Pagaram: ' + str(self.qtd_passagensPagas)
+        print ' Passageiros: ' + str(self.qtd_passageirosAtual)
+        print ' Temperatura: ' + ("{0:.1f}".format(self.temperatura))
+        print ' Alerta Ruido: ' + str(self.intensidadeRuido)
+        print "**************************"
 
     def errorReport(self, errorCode):
         if errorCode == ERROR_CODE_TIMEOUT_RF:
@@ -115,6 +117,7 @@ class SerialComm:
         self.count_sound = 0
         self.count_sound_warning = 0
         self.media_temp = 0
+        self.cur_sound = 0
 
     def isfloat(self, value):
         try:
@@ -150,6 +153,7 @@ class SerialComm:
                         pass    # colocar ERROR REPORT
                     else:
                         if(st[0].isdigit()):
+                            self.cur_sound = int(st[0])
                             self.lista_sound.append(int(st[0]))
                             self.count_sound += 1
 
@@ -167,7 +171,7 @@ class SerialComm:
             result_med_temp = (med_temp) / self.count_temp
         if(self.count_sound > 0):
             result_med_sound = (med_sound) / self.count_sound
-        if(result_med_sound > 30):
+        if((self.cur_sound-result_med_sound)>10):
             self.count_sound_warning += 1
 
         self.media_temp = result_med_temp
@@ -178,7 +182,7 @@ class SerialComm:
         if(len(self.lista_sound) >= 1000):
             self.lista_sound = []
             self.count_sound = 0
-        print str(self.count_pass) + "\t" + str(self.media_temp) + '\t' + str(self.count_sound_warning)
+        # print str(self.count_pass) + "\t" + str(self.media_temp) + '\t' + str(self.count_sound_warning)
         dados.qtd_passagensPagas, dados.temperatura, dados.intensidadeRuido = self.getMsg()
 
     def storeSerialMsg(self, dados, str_Serial):
@@ -201,9 +205,12 @@ class SerialComm:
             return True
 
     def executar(self, bus, dados):
-        if self.estado == 0:
-            self.getInfo(dados)
-            self.start_time = time.time()
+#        if self.estado == 0:
+        self.ard.flushInput()
+#            self.estado = 1
+#        elif self.estado == 1:
+        self.getInfo(dados)
+#            self.estado = 0
 
 
 class LDR:
@@ -547,12 +554,11 @@ class Sensors:
 
     def executar(self, bus, dados):
         if self.count == 0:
+            self.count = self.degrau(dados)
             self.mpu_func(dados)
             # self.count = self.barreira1(dados)
             if self.count == 0:
                 self.count = self.barreira2(dados)
-            if self.count == 0:
-                self.count = self.degrau(dados)
         elif self.count == 1:
             self.mpu_func(dados)
             self.count = self.barreira1(dados)
